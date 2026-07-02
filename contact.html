@@ -11,6 +11,118 @@ href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&di
 rel="stylesheet">
 <link rel="stylesheet"
 href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+/* Success/Error Message Styles */
+.alert {
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 4px;
+  animation: slideDown 0.3s ease-out;
+}
+
+.alert-success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.alert-error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.alert-warning {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeeba;
+}
+
+.alert-info {
+  background-color: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}
+
+.alert h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.alert ul {
+  margin: 5px 0;
+  padding-left: 20px;
+}
+
+.alert li {
+  margin: 5px 0;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Form Loading State */
+.form-loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 10px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.form-field-error input,
+.form-field-error select,
+.form-field-error textarea {
+  border-color: #dc3545 !important;
+  background-color: #fff5f5;
+}
+
+.field-error-message {
+  color: #dc3545;
+  font-size: 12px;
+  margin-top: 5px;
+  display: none;
+}
+
+.form-field-error .field-error-message {
+  display: block;
+}
+
+.success-message {
+  display: none;
+}
+
+.success-message.show {
+  display: block;
+}
+</style>
 </head>
 <body>
 <!-- Header -->
@@ -61,36 +173,62 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
 <h2>Send Us a Message</h2>
 <p>Fill out the form below and our team will get back to you within 24 hours.</p>
 
+<!-- Success Alert (Hidden by default) -->
+<div id="successAlert" class="alert alert-success" style="display: none;">
+  <h4><i class="fas fa-check-circle"></i> Submission Successful!</h4>
+  <p>Thank you for contacting ZeroTrace. We have received your message and will get back to you within 24 hours.</p>
+  <p><strong>Record ID:</strong> <span id="recordId"></span></p>
+</div>
+
+<!-- Error Alert Container -->
+<div id="errorAlert" class="alert alert-error" style="display: none;">
+  <h4><i class="fas fa-exclamation-circle"></i> Form Errors:</h4>
+  <ul id="errorList"></ul>
+</div>
+
+<!-- Form Loading State -->
+<div id="loadingAlert" class="alert alert-info" style="display: none;">
+  <span class="loading-spinner"></span>
+  <span>Submitting your form...</span>
+</div>
+
+<!-- Contact Form -->
 <div class="contact-form" id="contactForm">
-<form action="connect.php" method="post">
+<form id="contactFormElement" method="post" novalidate>
 <div class="form-group">
 <label for="fname">First Name *</label>
 <input type="text" id="fname" name="fname" required>
+<span class="field-error-message">Please enter your first name</span>
 </div>
 
 <div class="form-group">
 <label for="lname">Last Name *</label>
 <input type="text" id="lname" name="lname" required>
+<span class="field-error-message">Please enter your last name</span>
 </div>
 
 <div class="form-group">
 <label for="email">Email Address *</label>
 <input type="email" id="email" name="email" required>
+<span class="field-error-message">Please enter a valid email address</span>
 </div>
 
 <div class="form-group">
 <label for="phone">Phone Number</label>
 <input type="tel" id="phone" name="phone">
+<span class="field-error-message">Please enter a valid phone number</span>
 </div>
 
 <div class="form-group">
 <label for="company">Company Name</label>
 <input type="text" id="company" name="company">
+<span class="field-error-message">Company name must not exceed 150 characters</span>
 </div>
 
 <div class="form-group">
-<label for="jobTitle">Job Title</label>
+<label for="title">Job Title</label>
 <input type="text" id="title" name="title">
+<span class="field-error-message">Job title must not exceed 100 characters</span>
 </div>
 
 <div class="form-group">
@@ -105,6 +243,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
 <option value="demo">Request Demo</option>
 <option value="incident">Security Incident</option>
 </select>
+<span class="field-error-message">Please select an inquiry type</span>
 </div>
 
 <div class="form-group">
@@ -121,10 +260,9 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
 
 <div class="form-group full-width">
 <label for="message">Message *</label>
-<textarea id="message" name="message" rows="5" placeholder="Please describe
-
-your cybersecurity needs or questions..." required></textarea>
-
+<textarea id="message" name="message" rows="5" placeholder="Please describe your cybersecurity needs or questions..." required></textarea>
+<span class="field-error-message">Message must be at least 10 characters long</span>
+<small style="color: #666;">(<span id="charCount">0</span>/500 characters)</small>
 </div>
 
 <div class="form-group checkbox-group">
@@ -144,13 +282,16 @@ Subscribe to our cybersecurity newsletter for the latest threats and insights
 
 href="#" target="_blank">Terms of Service</a> *
 
-</p> </label>
+</p>
+<span class="field-error-message">You must agree to the Privacy Policy and Terms of Service</span>
+</label>
 </div>
 
-<button type="submit" class="btn btn-primary" name="submit">Submit</button>
+<button type="submit" class="btn btn-primary" id="submitBtn">Submit</button>
+<button type="reset" class="btn btn-secondary" style="margin-left: 10px; background-color: #6c757d;">Reset</button>
 
-</div>
 </form>
+</div>
 
 </div>
 
@@ -322,6 +463,238 @@ cybersecurity solutions.</p>
 </div>
 </footer>
 
+<!-- Client-Side Form Handler Script -->
+<script>
+/**
+ * ZeroTrace Contact Form - Client-Side Handler
+ * Handles form validation, submission, and user interaction
+ */
+
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('contactFormElement');
+  const submitBtn = document.getElementById('submitBtn');
+  const messageField = document.getElementById('message');
+  const charCount = document.getElementById('charCount');
+  
+  // Character counter for message field
+  messageField.addEventListener('input', function() {
+    charCount.textContent = this.value.length;
+    if (this.value.length > 500) {
+      this.value = this.value.substring(0, 500);
+      charCount.textContent = 500;
+    }
+  });
+
+  // Form submission handler
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Clear previous alerts
+    document.getElementById('errorAlert').style.display = 'none';
+    document.getElementById('successAlert').style.display = 'none';
+    document.getElementById('loadingAlert').style.display = 'none';
+    
+    // Client-side validation
+    if (!validateForm()) {
+      return;
+    }
+
+    // Show loading state
+    document.getElementById('loadingAlert').style.display = 'block';
+    submitBtn.disabled = true;
+
+    // Prepare form data
+    const formData = new FormData(form);
+
+    // Send to server
+    fetch('connect.php', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => {
+      if (response.ok) {
+        // Success - redirect or show success message
+        const urlParams = new URLSearchParams(window.location.search);
+        const recordId = urlParams.get('id');
+        
+        document.getElementById('loadingAlert').style.display = 'none';
+        document.getElementById('successAlert').style.display = 'block';
+        if (recordId) {
+          document.getElementById('recordId').textContent = recordId;
+        }
+        
+        // Reset form
+        form.reset();
+        charCount.textContent = 0;
+        
+        // Scroll to success message
+        document.getElementById('successAlert').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        
+        // Re-enable submit button after 3 seconds
+        setTimeout(() => {
+          submitBtn.disabled = false;
+        }, 3000);
+      } else {
+        return response.text().then(text => {
+          throw new Error(text);
+        });
+      }
+    })
+    .catch(error => {
+      document.getElementById('loadingAlert').style.display = 'none';
+      submitBtn.disabled = false;
+      
+      // Show error from server or generic error
+      const errorAlert = document.getElementById('errorAlert');
+      const errorList = document.getElementById('errorList');
+      errorList.innerHTML = '<li>' + (error.message || 'An error occurred while submitting the form. Please try again.') + '</li>';
+      errorAlert.style.display = 'block';
+      
+      // Scroll to error
+      errorAlert.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
+  /**
+   * Client-side form validation
+   * @returns {boolean} True if form is valid, false otherwise
+   */
+  function validateForm() {
+    const errors = [];
+    const formGroups = form.querySelectorAll('.form-group');
+    
+    // Clear previous error states
+    formGroups.forEach(group => {
+      group.classList.remove('form-field-error');
+    });
+
+    // Get form values
+    const fname = document.getElementById('fname').value.trim();
+    const lname = document.getElementById('lname').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const company = document.getElementById('company').value.trim();
+    const title = document.getElementById('title').value.trim();
+    const inquiryType = document.getElementById('inquiryType').value.trim();
+    const message = document.getElementById('message').value.trim();
+    const privacy = document.getElementById('privacy').checked;
+
+    // Validate first name
+    if (!fname) {
+      errors.push('First name is required.');
+      markFieldError('fname');
+    } else if (fname.length > 100) {
+      errors.push('First name must not exceed 100 characters.');
+      markFieldError('fname');
+    }
+
+    // Validate last name
+    if (!lname) {
+      errors.push('Last name is required.');
+      markFieldError('lname');
+    } else if (lname.length > 100) {
+      errors.push('Last name must not exceed 100 characters.');
+      markFieldError('lname');
+    }
+
+    // Validate email
+    if (!email) {
+      errors.push('Email address is required.');
+      markFieldError('email');
+    } else if (!isValidEmail(email)) {
+      errors.push('Please enter a valid email address.');
+      markFieldError('email');
+    } else if (email.length > 150) {
+      errors.push('Email address must not exceed 150 characters.');
+      markFieldError('email');
+    }
+
+    // Validate phone if provided
+    if (phone && phone.length > 20) {
+      errors.push('Phone number must not exceed 20 characters.');
+      markFieldError('phone');
+    }
+
+    // Validate company if provided
+    if (company && company.length > 150) {
+      errors.push('Company name must not exceed 150 characters.');
+      markFieldError('company');
+    }
+
+    // Validate title if provided
+    if (title && title.length > 100) {
+      errors.push('Job title must not exceed 100 characters.');
+      markFieldError('title');
+    }
+
+    // Validate inquiry type
+    if (!inquiryType) {
+      errors.push('Please select an inquiry type.');
+      markFieldError('inquiryType');
+    }
+
+    // Validate message
+    if (!message) {
+      errors.push('Message is required.');
+      markFieldError('message');
+    } else if (message.length < 10) {
+      errors.push('Message must be at least 10 characters long.');
+      markFieldError('message');
+    }
+
+    // Validate privacy agreement
+    if (!privacy) {
+      errors.push('You must agree to the Privacy Policy and Terms of Service.');
+      markFieldError('privacy');
+    }
+
+    // Display errors if any
+    if (errors.length > 0) {
+      const errorList = document.getElementById('errorList');
+      errorList.innerHTML = errors.map(err => '<li>' + err + '</li>').join('');
+      document.getElementById('errorAlert').style.display = 'block';
+      document.getElementById('errorAlert').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Mark a field as having an error
+   * @param {string} fieldId The ID of the field
+   */
+  function markFieldError(fieldId) {
+    const field = document.getElementById(fieldId);
+    if (field) {
+      const formGroup = field.closest('.form-group');
+      if (formGroup) {
+        formGroup.classList.add('form-field-error');
+      }
+    }
+  }
+
+  /**
+   * Validate email format
+   * @param {string} email Email to validate
+   * @returns {boolean} True if valid email format
+   */
+  function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
+  // Check for success parameter on page load
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.has('submitted')) {
+    const recordId = urlParams.get('id');
+    document.getElementById('successAlert').style.display = 'block';
+    if (recordId) {
+      document.getElementById('recordId').textContent = recordId;
+    }
+  }
+});
+</script>
+
 </body>
 </html>
-
