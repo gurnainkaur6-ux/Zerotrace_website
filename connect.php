@@ -60,7 +60,8 @@ if (!empty($errors)) {
 
 // Prepared statement to insert data
 $stmt = $mysqli->prepare(
-    "INSERT INTO contacts (fname, lname, email, phone, company, title, inquiryType, companySize, message, plan, newsletter, privacy, created_at)\n     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())"
+    "INSERT INTO contacts (fname, lname, email, phone, company, title, inquiryType, companySize, message, plan, newsletter, privacy, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())"
 );
 
 if (!$stmt) {
